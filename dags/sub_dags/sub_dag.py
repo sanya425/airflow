@@ -6,14 +6,19 @@ from airflow.operators.bash import BashOperator
 
 PATH = Variable.get('path_to_run')
 
-def _print_result(ti):
-    msg = ti.xcom_pull(dag_id='dag_id_2', task_ids='query_the_table', key='result_of_task')
+
+def _print_result(ti) -> None:
+    """
+    Get form Xcom value and log this
+    :param ti: task_instance
+    :return: None
+    """
+    msg = ti.xcom_pull(dag_id='dag_id_2', task_ids='end_dag', key='result_of_task')
     print(f"{msg}")
 
 
 def create_sub_dag(parent_dag_id, parent_task_id, default_args):
     with DAG(f"{parent_dag_id}.{parent_task_id}", default_args=default_args) as dag:
-
         sensor = ExternalTaskSensor(
             task_id='sensor',
             external_task_id=None,

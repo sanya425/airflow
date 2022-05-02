@@ -16,7 +16,12 @@ default_args = {
 }
 
 
-def sent_message(*args):
+def sent_message(*args) -> None:
+    """
+    Sent message to the slack chanel
+    :param args: DAG_id, execution_date
+    :return: None
+    """
     run_id = args[0]
     execution_date = args[1]
     slack_token = Variable.get('slack_token')
@@ -49,17 +54,6 @@ with DAG(dag_id='trigger_dag', schedule_interval='*/4 * * * *', default_args=def
         task_id='sub_dag',
         subdag=create_sub_dag("trigger_dag", "sub_dag", default_args)
     )
-
-    #init_vault
-    '''
-    docker exec -it VAULT_DOCKER_ID sh
-
-    vault login ZyrP7NtNw0hbLUqu7N3IlTdO
-
-    vault secrets enable -path=airflow -version=2 kv
-
-    vault kv put airflow/variables/slack_token value=T03D2PKRWAU/B03CD1SNQAE/dkEprnaNsutaZmRn1F1g5oIk
-    '''
 
     slack_message = PythonOperator(
         task_id='slack_message',

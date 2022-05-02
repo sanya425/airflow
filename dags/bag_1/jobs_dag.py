@@ -20,12 +20,17 @@ config = {
 
 
 def create_dag(dag_id, default_args):
-    def print_process_start(ti):
-        val = "{{ run_id }} ended"
-        ti.xcom_push(key="result_of_task", value=val)
+    def print_process_start() -> str:
+        """
+        Print DB`s name
+        :return: string with name db
+        """
         return f"{dag_id} start processing tables in database: PostgreSQL"
 
     def get_schema(hook, sql_to_get_schema: str) -> str:
+        """
+        :return schema name
+        """
         query = hook.get_records(sql=sql_to_get_schema)
         for result in query:
             if 'airflow' in result:
@@ -34,10 +39,18 @@ def create_dag(dag_id, default_args):
                 return schema
 
     def make_query(hook, schema, sql_query, table_name):
+        """
+         make query to table by schema
+        :return: first row of query
+        """
         query = hook.get_first(sql=sql_query.format(schema, table_name))
         return query
 
     def _check_table_exist(sql_to_get_schema, sql_to_check_table_exist, table_name):
+        """
+        callable function to get schema name and after that check if table exist
+        :return: first row of query
+        """
         hook = PostgresHook(postgres_conn_id='postgres_local')
         # get schema name
         schema = get_schema(hook, sql_to_get_schema)
@@ -48,11 +61,15 @@ def create_dag(dag_id, default_args):
         print("Query:", query)
         return query
 
-    def _query_the_table(sql_to_get_schema, sql_query, table_name):
-        hook = PostgresHook(postgres_conn_id='postgres_local')
-        schema = get_schema(hook, sql_to_get_schema)
-        query = hook.get_first(sql=sql_query.format(schema, table_name))
-        return query
+    def end_process(ti):
+        """
+        Push to the Xcom dag_id
+        :param ti: task_instance
+        :return: None
+        """
+        val = "{{ run_id }} ended"
+        ti.xcom_push(key="result_of_task", value=val)
+
 
     with DAG(dag_id=dag_id, schedule_interval='*/4 * * * *', default_args=default_args, catchup=False) as dag:
         print_process_start = PythonOperator(
@@ -106,8 +123,13 @@ def create_dag(dag_id, default_args):
             do_xcom_push=True
         )
 
-        print_process_start >> get_current_user >> check_table_exist >> [create_table,
-                                                                         dummy_pass] >> insert_new_row >> query_the_table
+        end_dag = PythonOperator(
+            task_id='end_dag',
+            python_callable=end_process
+        )
+
+        print_process_start >> get_current_user >> check_table_exist
+        check_table_exist >> [create_table, dummy_pass] >> insert_new_row >> query_the_table >> end_dag
     return dag
 
 

@@ -3,7 +3,10 @@ from typing import Any
 
 
 class SmartFileSensor(FileSensor):
-    poke_context_fields = ('filepath', 'fs_default') # <- Required
+    """
+    Optimize default FileSensors
+    """
+    poke_context_fields = ('filepath', 'fs_default')  # <- Required
 
     def __init__(self,  **kwargs: Any):
         super().__init__(**kwargs)

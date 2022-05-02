@@ -3,6 +3,9 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 
 class PostgreSQLCountRows(BaseOperator):
+    """
+    Custom operator to count number of rows
+    """
     def __init__(self,
                  sql_to_get_schema: str,
                  sql_to_count: str,
