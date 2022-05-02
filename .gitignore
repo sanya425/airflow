@@ -301,6 +301,9 @@ cython_debug/
 /.idea/
 /logs/
 logs/*
+dags/my_dag.py
+dags/test_conn_dag.py
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
