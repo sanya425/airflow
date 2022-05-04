@@ -24,7 +24,6 @@ with DAG(dag_id='func_dag', default_args=default_args) as dag:
             print(data.readline())
         return {"path": f"{PATH}/data_crash.csv"}
 
-    path_data = open_data()
 
     @dag.task(multiple_outputs=True)
     def count_accident(raw_json: dict) -> dict:
@@ -38,7 +37,6 @@ with DAG(dag_id='func_dag', default_args=default_args) as dag:
         count = data[['Year', 'Master Record Number']].groupby(['Year']).count()
         return json.loads(count.to_json())
 
-    count_crash = count_accident(path_data)
 
     @dag.task(multiple_outputs=False)
     def print_result(orig_json: dict) -> str:
@@ -50,6 +48,10 @@ with DAG(dag_id='func_dag', default_args=default_args) as dag:
         for year, cnt in orig_json['Master Record Number'].items():
             print(f'Year: {year}  ---  {cnt} .')
         return 'success'
+
+
+    path_data = open_data()
+    count_crash = count_accident(path_data)
     log_result = print_result(count_crash)
 
     path_data >> count_crash >> log_result

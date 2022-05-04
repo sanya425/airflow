@@ -7,13 +7,12 @@ from airflow.operators.bash import BashOperator
 PATH = Variable.get('path_to_run')
 
 
-def _print_result(ti) -> None:
+def _print_result(task_instance) -> None:
     """
     Get form Xcom value and log this
-    :param ti: task_instance
     :return: None
     """
-    msg = ti.xcom_pull(dag_id='dag_id_2', task_ids='end_dag', key='result_of_task')
+    msg = task_instance.xcom_pull(dag_id='dag_id_2', task_ids='end_dag', key='result_of_task')
     print(f"{msg}")
 
 

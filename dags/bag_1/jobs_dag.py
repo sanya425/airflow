@@ -52,24 +52,20 @@ def create_dag(dag_id, default_args):
         :return: first row of query
         """
         hook = PostgresHook(postgres_conn_id='postgres_local')
-        # get schema name
         schema = get_schema(hook, sql_to_get_schema)
-        # check table exist
         query = make_query(hook, schema, sql_to_check_table_exist, table_name)
         print("Query:", query)
         query = "dummy_pass" if query else "create_table"
         print("Query:", query)
         return query
 
-    def end_process(ti):
+    def end_process(task_instance):
         """
         Push to the Xcom dag_id
-        :param ti: task_instance
         :return: None
         """
         val = "{{ run_id }} ended"
-        ti.xcom_push(key="result_of_task", value=val)
-
+        task_instance.xcom_push(key="result_of_task", value=val)
 
     with DAG(dag_id=dag_id, schedule_interval='*/4 * * * *', default_args=default_args, catchup=False) as dag:
         print_process_start = PythonOperator(
